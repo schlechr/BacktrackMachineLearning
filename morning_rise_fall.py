@@ -9,7 +9,7 @@ import daily_result as dr
 import helper as h
 
 #YEARS = range(2010, 2022)
-YEARS = range(2020, 2021)
+YEARS = range(2015, 2021)
 MONTHS = range(1,13)
 MARKET = 'FESX'
 PIP_SIZE = 0.5
@@ -33,8 +33,19 @@ def create_data(all_trades, y, m):
 
 def get_result( data, all_trades ):
     pos = 0
+    res = 0
     result = []
+
+    # Check if there is a issue with the date of the data
+    for index, row in data.iterrows():
+        dt = datetime.strptime(row["Date"],"%Y-%m-%d %H:%M:%S")
+        if dt.date() != all_trades[index][0]:
+            print(dt.date())
+            print(all_trades[index][0])
+            exit()
+
     for a in all_trades:
+        res += a[2]
         if a[2] > 0:
             pos += 1
             result.append(1)
@@ -46,7 +57,7 @@ def get_result( data, all_trades ):
     data['Result'] = result
 
     print(data)
-    print(f"{len(all_trades)} -> Pos: {pos}")
+    print(f"{len(all_trades)} -> Pos: {pos} -> Res: {res}")
     print(f"Processing time...{round(time.time() - start, 2)} sec")
 
 def machine_learning(data):
@@ -65,6 +76,7 @@ def machine_learning(data):
         #print(prediction)
         #print(testL)
     print(f"Avg. Accuracy: {round(accs/trys,2)} %")
+    print(f"Processing time...{round(time.time() - start, 2)} sec")
 
 if __name__ == "__main__":
     start = time.time()

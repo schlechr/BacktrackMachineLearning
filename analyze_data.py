@@ -3,6 +3,7 @@ from datetime import datetime
 import helper as h
 
 def main( df30m : pd.DataFrame, days, PIP_SIZE ):
+    new_data = None
     data = None
     cur_day = 0
 
@@ -23,6 +24,7 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
         elif cur_day != dt.day:
             #day = [cur_day, low, high, ((high-low)/PIP_SIZE)+1]
             days.append([cur_day, low, high, ((high-low)/PIP_SIZE)+1])
+            data = pd.concat([data, new_data], ignore_index=True)
             low = 0
             high = 0
             cur_day = dt.day
@@ -43,7 +45,6 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
 
         new_data = df30m.loc[[index]][['Date', 'Volume', 'Trades', 'Bar Size', 'Max Volume']]
         new_data['Uprise'] = to_mv/full
-        data = pd.concat([data, new_data], ignore_index=True)
 
         if low == 0 and high == 0: 
             low = tmp_low
@@ -55,4 +56,7 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
         if high < tmp_high:
             high = tmp_high
     
+    days.append([cur_day, low, high, ((high-low)/PIP_SIZE)+1])
+    data = pd.concat([data, new_data], ignore_index=True)
+
     return data

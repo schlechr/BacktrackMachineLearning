@@ -28,7 +28,7 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
                     all_trades.append([dt.date(), open_trade[0],((low_limit - close) / PIP_SIZE) * GV_PER_PIP])
                 open_trade = []
             continue
-        elif dt.hour >= 12 and open_trade == [] and skip_day == False:
+        elif dt.hour >= 12 and open_trade == [] and skip_day == False and found_day == True:
             open_trade = ["No Trade"]
             all_trades.append([dt.date(), 0, 0])
             skip_day = True
@@ -38,6 +38,7 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
 
         if cur_day != dt.day:
             skip_day = False
+            found_day = False
             cur_day = dt.day
             open_trade = []
             for i in days:
@@ -45,9 +46,11 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
                     low_limit = i[1] - PIP_SIZE
                     high_limit = i[2] + PIP_SIZE
                     tp_sl = ((i[2]-i[1])/PIP_SIZE)+PIP_SIZE
+                    found_day = True
                     break
 
         if skip_day == True: continue
+        if found_day == False: continue
 
         tmp_high = h.string_to_num(row["High"])
         tmp_low = h.string_to_num(row["Low"])
