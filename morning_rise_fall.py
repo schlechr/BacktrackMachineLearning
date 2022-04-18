@@ -1,12 +1,12 @@
 import pandas as pd
 from datetime import datetime
 import time
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 import analyze_data as ad
 import daily_result as dr
 import config as c
+from sklearn.model_selection import KFold
 
 # # # # # # # # # # # # # # # # # # # # # #
 # Following values needs to be configurated in a seperate "config.py file"
@@ -74,20 +74,25 @@ def get_result( data : pd.DataFrame, all_trades ):
 
 def machine_learning(data):
     accs = 0
-    trys = 10
-    for _ in range(trys):
-        trainF, testF, trainL, testL = train_test_split(data.loc[:, data.columns != 'Result'], data.loc[:,'Result'], test_size=0.25)
+    splits = 5
+
+    features = data.loc[:, data.columns != 'Result']
+    labels = data.loc[:,'Result']
+
+    kf = KFold(n_splits=splits)
+    for train_index, test_index in kf.split(data):
+        trainF, testF = features.iloc[train_index], features.iloc[test_index]
+        trainL, testL = labels.iloc[train_index], labels.iloc[test_index]
 
         rf = RandomForestClassifier(n_estimators=100)
         rf.fit(trainF, trainL)
 
         prediction = rf.predict(testF)
         accuracy = metrics.accuracy_score(testL, prediction) * 100
-        print('Accuracy:', accuracy, '%')
+        print('Accuracy:', round(accuracy,4), '%')
         accs += accuracy
-        #print(prediction)
-        #print(testL)
-    print(f"Avg. Accuracy: {round(accs/trys,2)} %")
+
+    print(f"Avg. Accuracy: {round(accs/splits, 2)} %")
     print(f"Processing time...{round(time.time() - start, 2)} sec")
 
 if __name__ == "__main__":
