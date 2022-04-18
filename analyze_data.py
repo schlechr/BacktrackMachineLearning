@@ -7,9 +7,15 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
     data = None
     cur_day = 0
 
+    tmp_volume = 0
+    tmp_trades = 0
+
     for index, row in df30m.iterrows():
         dt = datetime.strptime(row["Date"],"%Y-%m-%d %H:%M:%S")
 
+        # # # # # # # # #
+        if( dt.month == 12 and dt.day == 5 and dt.year == 2018 ): continue # @ES
+        # # # # # # # # #
         if( dt.weekday() < 0 or dt.weekday() > 4 ): continue
 
         if dt.hour != 8 or dt.minute != 0: continue
@@ -43,8 +49,11 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
         #print(to_mv)
         #print(to_mv/full)
 
-        new_data = df30m.loc[[index]][['Date', 'Volume', 'Trades', 'Bar Size', 'Max Volume']]
-        new_data['Uprise'] = to_mv/full
+        new_data = df30m.loc[[index]][['Date', 'Volume', 'Trades', 'Bar Size']]#, 'Max Volume']]
+        if full == 0:
+            new_data['Uprise'] = 0
+        else:
+            new_data['Uprise'] = to_mv/full
 
         if low == 0 and high == 0: 
             low = tmp_low

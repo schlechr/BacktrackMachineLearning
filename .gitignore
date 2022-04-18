@@ -4,5 +4,6 @@ __pycache__/
 data/
 output/
 tmp/
+config.py
 
 test.py

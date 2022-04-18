@@ -6,28 +6,30 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 import analyze_data as ad
 import daily_result as dr
-import helper as h
+import config as c
 
-#YEARS = range(2010, 2022)
-YEARS = range(2015, 2021)
-MONTHS = range(1,13)
-MARKET = 'FESX'
-PIP_SIZE = 0.5
-GV_PER_PIP = 5
-RATE_TO_USD = 1.13
+# # # # # # # # # # # # # # # # # # # # # #
+# Following values needs to be configurated in a seperate "config.py file"
+# YEARS = range(2020, 2021)
+# MONTHS = range(1,13)
+# MARKET = 'ES'
+# PIP_SIZE = 0.25
+# GV_PER_PIP = 12.5
+# RATE_TO_USD = 1
+# # # # # # # # # # # # # # # # # # # # # #
 
 def create_data(all_trades, y, m):
     try:
-        df1m = pd.read_csv(f"./data/{MARKET}/1M/{y}/{m:02d}.csv", sep=";")
-        df30m = pd.read_csv(f"./data/{MARKET}/30M/{y}/{m:02d}.csv", sep=";")
+        df1m = pd.read_csv(f"./data/{c.MARKET}/1M/{y}/{m:02d}.csv", sep=";")
+        df30m = pd.read_csv(f"./data/{c.MARKET}/30M/{y}/{m:02d}.csv", sep=";")
     except:
         return
     
     days = []
 
-    data = ad.main(df30m, days, PIP_SIZE)
+    data = ad.main(df30m, days, c.PIP_SIZE)
 
-    dr.main(df1m, all_trades, days, PIP_SIZE, GV_PER_PIP)
+    dr.main(df1m, all_trades, days, c.PIP_SIZE, c.GV_PER_PIP)
 
     return data
 
@@ -83,8 +85,8 @@ if __name__ == "__main__":
 
     all_trades = []
     data = None
-    for y in YEARS:
-        for m in MONTHS:
+    for y in c.YEARS:
+        for m in c.MONTHS:
             data = pd.concat([data, create_data(all_trades, y, m)], ignore_index=True)
 
     get_result( data, all_trades )

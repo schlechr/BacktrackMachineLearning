@@ -8,6 +8,7 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
     high_limit = 0
     open_trade = []
     skip_day = False
+    last_dt = None
 
     #print(data)
     
@@ -18,6 +19,10 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
 
         if dt.hour < 8 or (dt.hour == 8 and dt.minute < 30): continue
         #if dt.hour <= 8: continue
+
+        if last_dt != None and dt.date() != last_dt.date():
+            if all_trades[len(all_trades)-1][0] != last_dt.date():
+                all_trades.append([last_dt.date(), 0, 0])
         
         if dt.hour >= 15: 
             if open_trade != []:
@@ -32,6 +37,8 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
             open_trade = ["No Trade"]
             all_trades.append([dt.date(), 0, 0])
             skip_day = True
+
+        last_dt = dt
 
         #if PIP_SIZE != 0.5 and ( dt.year > 2021 or (dt.year == 2021 and dt.month > 6) or (dt.year == 2021 and dt.month == 6 and dt.day >= 21)):
         #    set_pip_size(0.5)
