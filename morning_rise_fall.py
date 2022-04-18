@@ -33,18 +33,26 @@ def create_data(all_trades, y, m):
 
     return data
 
-def get_result( data, all_trades ):
+def get_result( data : pd.DataFrame, all_trades ):
     pos = 0
     res = 0
     result = []
 
+    remove_no_trades = []
     # Check if there is a issue with the date of the data
     for index, row in data.iterrows():
         dt = datetime.strptime(row["Date"],"%Y-%m-%d %H:%M:%S")
-        if dt.date() != all_trades[index][0]:
+        if dt.date() != all_trades[index - len(remove_no_trades)][0]:
+            if dt.date() < all_trades[index - len(remove_no_trades)][0]:
+                remove_no_trades.append(index)
+                continue
             print(dt.date())
             print(all_trades[index][0])
-            exit()
+            #exit()
+
+    remove_no_trades.reverse()
+    for r in remove_no_trades:
+        data = data.drop(r)
 
     for a in all_trades:
         res += a[2]
@@ -61,6 +69,8 @@ def get_result( data, all_trades ):
     print(data)
     print(f"{len(all_trades)} -> Pos: {pos} -> Res: {res}")
     print(f"Processing time...{round(time.time() - start, 2)} sec")
+
+    return data
 
 def machine_learning(data):
     accs = 0
@@ -89,7 +99,7 @@ if __name__ == "__main__":
         for m in c.MONTHS:
             data = pd.concat([data, create_data(all_trades, y, m)], ignore_index=True)
 
-    get_result( data, all_trades )
+    data = get_result( data, all_trades )
     
     machine_learning(data.loc[:, data.columns != 'Date'])
 

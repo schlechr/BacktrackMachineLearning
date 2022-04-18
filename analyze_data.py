@@ -14,7 +14,7 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
         dt = datetime.strptime(row["Date"],"%Y-%m-%d %H:%M:%S")
 
         # # # # # # # # #
-        if( dt.month == 12 and dt.day == 5 and dt.year == 2018 ): continue # @ES
+        #if( dt.month == 12 and dt.day == 5 and dt.year == 2018 ): continue # @ES
         # # # # # # # # #
         if( dt.weekday() < 0 or dt.weekday() > 4 ): continue
 
