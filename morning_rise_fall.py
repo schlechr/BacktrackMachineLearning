@@ -7,6 +7,9 @@ import analyze_data as ad
 import daily_result as dr
 import config as c
 from sklearn.model_selection import KFold
+from pathlib import Path
+import pickle
+from joblib import dump, load
 
 # # # # # # # # # # # # # # # # # # # # # #
 # Following values needs to be configurated in a seperate "config.py file"
@@ -46,9 +49,10 @@ def get_result( data : pd.DataFrame, all_trades ):
             if dt.date() < all_trades[index - len(remove_no_trades)][0]:
                 remove_no_trades.append(index)
                 continue
+            print("Date does not match")
             print(dt.date())
             print(all_trades[index][0])
-            #exit()
+            exit()
 
     remove_no_trades.reverse()
     for r in remove_no_trades:
@@ -73,6 +77,7 @@ def get_result( data : pd.DataFrame, all_trades ):
     return data
 
 def machine_learning(data):
+    tmp_acc = 0
     accs = 0
     splits = 5
 
@@ -91,9 +96,33 @@ def machine_learning(data):
         accuracy = metrics.accuracy_score(testL, prediction) * 100
         print('Accuracy:', round(accuracy,4), '%')
         accs += accuracy
+        if tmp_acc < accuracy:
+            print("Export")
+            exportClassifier( rf )
+            tmp_acc = accuracy
 
     print(f"Avg. Accuracy: {round(accs/splits, 2)} %")
     print(f"Processing time...{round(time.time() - start, 2)} sec")
+
+def local_machine_learning(data):
+    features = data.loc[:, data.columns != 'Result']
+    labels = data.loc[:,'Result']
+    rf = getLocalClassifier()
+
+    prediction = rf.predict(features)
+    accuracy = metrics.accuracy_score(labels, prediction) * 100
+    print('Accuracy:', round(accuracy,4), '%')
+
+    print(f"Processing time...{round(time.time() - start, 2)} sec")
+
+def exportClassifier( clf ):
+    Path(f"data/classifier").mkdir(parents=True, exist_ok=True)
+    s = pickle.dumps(clf)
+    dump(s, 'data/classifier/new.joblib')
+
+def getLocalClassifier():
+    s = load('data/classifier/new.joblib')
+    return( pickle.loads(s) )
 
 if __name__ == "__main__":
     start = time.time()
@@ -106,7 +135,10 @@ if __name__ == "__main__":
 
     data = get_result( data, all_trades )
     
-    machine_learning(data.loc[:, data.columns != 'Date'])
+    if True:
+        machine_learning(data.loc[:, data.columns != 'Date'])
+    else:
+        local_machine_learning(data.loc[:, data.columns != 'Date'])
 
     # res = 0
     # for i in all_trades:

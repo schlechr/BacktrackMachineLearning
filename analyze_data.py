@@ -45,18 +45,21 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
 
     return data
 
-def create_new_data(data, fields = []):
+def create_new_data(data : pd.DataFrame, fields = []):
     pos_fields = ["Date", "Volume","Trades","Bar Size","High","Low","Open","Close","Delta T/D","Delta Aggressor","H/L Side","O/C Side","O/C Size","Max Volume","M/V Price","M/V Trades","M/V Delta T/D","M/V Delta Aggressor","Max Trade","Max Tick","Ticks Number","Hidden Volume","TPO High","TPO Low","COT High","COT Low","Max Delta T/D","Max Delta Aggressor"]
 
     if fields == []:
         fields = pos_fields
     if "Date" not in fields:
         fields.append("Date")
-    
+
     new_data = pd.DataFrame(columns=fields)
 
     for f in pos_fields:
         if f in fields:
             new_data[f] = h.string_to_num(data[f])
 
+    #new_data['Weekday'] = datetime.strptime(data["Date"].values[0],"%Y-%m-%d %H:%M:%S").weekday()
+    #new_data['Day'] = datetime.strptime(data["Date"].values[0],"%Y-%m-%d %H:%M:%S").day
+    #new_data['Month'] = datetime.strptime(data["Date"].values[0],"%Y-%m-%d %H:%M:%S").month
     return new_data
