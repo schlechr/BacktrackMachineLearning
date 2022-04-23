@@ -92,12 +92,36 @@ def machine_learning(data):
         rf = RandomForestClassifier(n_estimators=100)
         rf.fit(trainF, trainL)
 
-        prediction = rf.predict(testF)
-        accuracy = metrics.accuracy_score(testL, prediction) * 100
-        print('Accuracy:', round(accuracy,4), '%')
+        prediction = rf.predict_proba(testF)
+        res = []
+
+        for p in prediction:
+            tmp_prob = 0
+            tmp_pred = ''
+            for i, c in enumerate(rf.classes_):
+                if p[i] >= 0.75 and p[i] > tmp_prob:
+                    tmp_prob = p[i]
+                    tmp_pred = c
+            res.append(tmp_pred)
+
+        new_labels = []
+        new_res = []
+        addM = 0
+
+        for i in range(0, len(res)):
+            if res[i] != '':
+                try:
+                    new_labels.append(testL[test_index[i]+addM])
+                except:
+                    addM += 1
+                    new_labels.append(testL[test_index[i]+addM])
+                new_res.append(res[i])
+        accuracy = metrics.accuracy_score(new_labels, new_res) * 100
         accs += accuracy
+        print(f'Found a prediction for {round((len(new_res)/len(res))*100, 2)} %')
+        print('Accuracy:', round(accuracy, 4), '%')
+
         if tmp_acc < accuracy:
-            print("Export")
             exportClassifier( rf )
             tmp_acc = accuracy
 
@@ -109,9 +133,32 @@ def local_machine_learning(data):
     labels = data.loc[:,'Result']
     rf = getLocalClassifier()
 
-    prediction = rf.predict(features)
-    accuracy = metrics.accuracy_score(labels, prediction) * 100
-    print('Accuracy:', round(accuracy,4), '%')
+    prediction = rf.predict_proba(features)
+    res = []
+
+    for p in prediction:
+        tmp_prob = 0
+        tmp_pred = ''
+        for i, c in enumerate(rf.classes_):
+            if p[i] >= 0.75 and p[i] > tmp_prob:
+                tmp_prob = p[i]
+                tmp_pred = c
+        res.append(tmp_pred)
+
+    new_labels = []
+    new_res = []
+
+    for i in range(len(res)):
+        if res[i] != '':
+            new_labels.append(labels[i])
+            new_res.append(res[i])
+    accuracy = metrics.accuracy_score(new_labels, new_res) * 100
+    print(f'Found a prediction for {round((len(new_res)/len(res))*100, 2)} %')
+    print('Accuracy:', round(accuracy, 4), '%')
+
+    # prediction = rf.predict(features)
+    # accuracy = metrics.accuracy_score(labels, prediction) * 100
+    # print('Accuracy:', round(accuracy,4), '%')
 
     print(f"Processing time...{round(time.time() - start, 2)} sec")
 
