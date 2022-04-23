@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import helper as h
+import config as cfg
 
 def main( df30m : pd.DataFrame, days, PIP_SIZE ):
     new_data = None
@@ -28,7 +29,7 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
             high = 0
             cur_day = dt.day
 
-        new_data = create_new_data(df30m.loc[[index]], ['Volume'])#, ['Date', 'Volume', 'Trades', 'Bar Size'])#[['Date', 'Volume', 'Trades', 'Bar Size']]#, 'Max Volume']]
+        new_data = create_new_data(df30m.loc[[index]], cfg.USING_VALUES)
 
         if low == 0 and high == 0: 
             low = tmp_low
