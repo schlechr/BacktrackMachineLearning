@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 import analyze_data as ad
 import daily_result as dr
-import config as c
+import config as cfg
 from sklearn.model_selection import KFold
 from pathlib import Path
 import pickle
@@ -23,16 +23,16 @@ from joblib import dump, load
 
 def create_data(all_trades, y, m):
     try:
-        df1m = pd.read_csv(f"./data/{c.MARKET}/1M/{y}/{m:02d}.csv", sep=";")
-        df30m = pd.read_csv(f"./data/{c.MARKET}/30M/{y}/{m:02d}.csv", sep=";")
+        df1m = pd.read_csv(f"./data/{cfg.MARKET}/1M/{y}/{m:02d}.csv", sep=";")
+        df30m = pd.read_csv(f"./data/{cfg.MARKET}/30M/{y}/{m:02d}.csv", sep=";")
     except:
         return
     
     days = []
 
-    data = ad.main(df30m, days, c.PIP_SIZE)
+    data = ad.main(df30m, days, cfg.PIP_SIZE)
 
-    dr.main(df1m, all_trades, days, c.PIP_SIZE, c.GV_PER_PIP)
+    dr.main(df1m, all_trades, days, cfg.PIP_SIZE, cfg.GV_PER_PIP)
 
     return data
 
@@ -99,7 +99,7 @@ def machine_learning(data):
             tmp_prob = 0
             tmp_pred = ''
             for i, c in enumerate(rf.classes_):
-                if p[i] >= 0.75 and p[i] > tmp_prob:
+                if p[i] >= cfg.MIN_PROB and p[i] > tmp_prob:
                     tmp_prob = p[i]
                     tmp_pred = c
             res.append(tmp_pred)
@@ -140,7 +140,7 @@ def local_machine_learning(data):
         tmp_prob = 0
         tmp_pred = ''
         for i, c in enumerate(rf.classes_):
-            if p[i] >= 0.75 and p[i] > tmp_prob:
+            if p[i] >= cfg.MIN_PROB and p[i] > tmp_prob:
                 tmp_prob = p[i]
                 tmp_pred = c
         res.append(tmp_pred)
@@ -176,8 +176,8 @@ if __name__ == "__main__":
 
     all_trades = []
     data = None
-    for y in c.YEARS:
-        for m in c.MONTHS:
+    for y in cfg.YEARS:
+        for m in cfg.MONTHS:
             data = pd.concat([data, create_data(all_trades, y, m)], ignore_index=True)
 
     data = get_result( data, all_trades )
