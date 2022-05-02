@@ -10,6 +10,8 @@ from sklearn.model_selection import KFold
 from pathlib import Path
 import pickle
 from joblib import dump, load
+from sklearn.decomposition import PCA
+from matplotlib import pyplot as plt
 
 # # # # # # # # # # # # # # # # # # # # # #
 # Following values needs to be configurated in a seperate "config.py file"
@@ -70,7 +72,7 @@ def get_result( data : pd.DataFrame, all_trades ):
 
     data['Result'] = result
 
-    print(data)
+    # print(data)
     print(f"{len(all_trades)} -> Pos: {pos} -> Res: {res}")
     print(f"Processing time...{round(time.time() - start, 2)} sec")
 
@@ -83,6 +85,10 @@ def machine_learning(data):
 
     features = data.loc[:, data.columns != 'Result']
     labels = data.loc[:,'Result']
+
+    # pca = PCA()
+    # features = pca.fit_transform(features)
+    # features = pd.DataFrame(features)
 
     kf = KFold(n_splits=splits)
     for train_index, test_index in kf.split(data):
@@ -162,6 +168,35 @@ def local_machine_learning(data):
 
     print(f"Processing time...{round(time.time() - start, 2)} sec")
 
+def plot_all( data : pd.DataFrame ):
+
+    features = data.loc[:, data.columns != 'Result']
+    labels = data.loc[:,'Result']
+
+    if features.shape[1] <= 1:
+        return
+
+    color = []
+    for l in labels:
+        if l == 1:
+            color.append("g")
+        elif l == -1:
+            color.append("r")
+        else:
+            color.append("b")    
+
+    pca = PCA()
+    pca_data = pca.fit_transform(features)
+    x = []
+    y = []
+    for p in pca_data:
+        x.append(p[0])
+        y.append(p[1])
+    
+    plt.scatter(x, y, marker="x", color=color)
+    
+    plt.show()
+
 def exportClassifier( clf ):
     Path(f"data/classifier").mkdir(parents=True, exist_ok=True)
     s = pickle.dumps(clf)
@@ -186,6 +221,8 @@ if __name__ == "__main__":
         machine_learning(data.loc[:, data.columns != 'Date'])
     else:
         local_machine_learning(data.loc[:, data.columns != 'Date'])
+
+    plot_all(data.loc[:, data.columns != 'Date'])
 
     # res = 0
     # for i in all_trades:
