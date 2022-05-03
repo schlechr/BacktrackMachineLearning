@@ -8,6 +8,55 @@ import pickle
 from joblib import dump, load
 import config as cfg
 
+def new_machine_learning_weekday(data):
+    # # # # # # # # # # # #
+    # Die Daten werden separiert pro Wochentag gespeichert und es wird ein normaler KFold darüber gemacht
+    # # # # # # # # # # # #
+    weekly = [ pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame() ]
+    splits = 3
+    #new_data = None     
+    
+    accs = 0
+    accs_count = 0
+    tmp_accs = 0
+    tmp_accs_count = 0
+    
+    for index, row in data.iterrows():
+        wd = datetime.strptime(row["Date"],"%Y-%m-%d %H:%M:%S").weekday()
+        
+        # Add data without Date column
+        if weekly[wd].empty == True:
+            weekly[wd] = data.iloc[[index]]
+        else:
+            weekly[wd] = pd.concat([weekly[wd], data.iloc[[index]]], ignore_index=True)
+    
+    kf = KFold(n_splits=splits)
+    for i, wd_data in enumerate(weekly):
+        data = wd_data.loc[:, wd_data.columns != "Date"]
+        for train_index, test_index in kf.split(data):
+            trainF, testF = data.iloc[train_index, data.columns != "Result"], data.iloc[test_index, data.columns != "Result"]
+            trainL, testL = data.iloc[train_index, data.columns == "Result"], data.iloc[test_index, data.columns == "Result"]
+
+            rf = RandomForestClassifier(n_estimators=100)
+            rf.fit(trainF, trainL["Result"])
+            
+            prediction = rf.predict(testF)
+            accuracy = metrics.accuracy_score(testL["Result"], prediction) * 100
+            tmp_accs += accuracy
+            tmp_accs_count += 1
+            print(f'{i}: Accuracy: {round(accuracy,4)}%')
+        
+        print(f"{i}: Avg. Accuracy: {round(tmp_accs/tmp_accs_count, 2)} %")
+        accs += tmp_accs
+        accs_count += tmp_accs_count
+        tmp_accs = 0
+        tmp_accs_count = 0
+        
+    if accs_count > 0:
+        print(f"Avg. Accuracy: {round(accs/accs_count, 2)} %")
+    else:
+        print("No prediction done!")
+
 def new_machine_learning_timeset(data):
     # # # # # # # # # # # #
     # Es wird für die ersten 20 (*counts*) Einträge ein RF erstellt und der 21. Vorhergesagt

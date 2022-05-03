@@ -122,6 +122,8 @@ if __name__ == "__main__":
         ml.new_machine_learning_monthly(data)
     elif cfg.MODE == 3:
         ml.new_machine_learning_timeset(data)
+    elif cfg.MODE == 4:
+        ml.new_machine_learning_weekday(data)
 
     print(f"Processing time...{round(time.time() - start, 2)} sec") 
 
