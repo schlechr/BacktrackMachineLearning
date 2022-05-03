@@ -120,6 +120,8 @@ if __name__ == "__main__":
         ml.local_machine_learning(data.loc[:, data.columns != 'Date'])
     elif cfg.MODE == 2:
         ml.new_machine_learning_monthly(data)
+    elif cfg.MODE == 3:
+        ml.new_machine_learning_timeset(data)
 
     print(f"Processing time...{round(time.time() - start, 2)} sec") 
 

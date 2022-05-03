@@ -8,6 +8,50 @@ import pickle
 from joblib import dump, load
 import config as cfg
 
+def new_machine_learning_timeset(data):
+    # # # # # # # # # # # #
+    # Es wird für die ersten 20 (*counts*) Einträge ein RF erstellt und der 21. Vorhergesagt
+    # Der vorderste Eintrag wird gelöscht und der 21. hinzugefügt, es wird ein RF erstellt und der 22. Vorhergesagt
+    # usw.
+    # # # # # # # # # # # #
+    counts = 30
+    learning_data = pd.DataFrame()
+    rf = None
+    accs = 0
+    accs_count = 0
+    
+    for index, row in data.iterrows():
+        # if the learning data matches the choosen amount, create a RF and make a prediction for the next day
+        if len(learning_data) >= counts:
+            features = learning_data.loc[:, learning_data.columns != 'Result']
+            features = features.loc[:, features.columns != 'Date']
+            labels = learning_data.loc[:,'Result']
+                
+            rf = RandomForestClassifier(n_estimators=100)
+            rf.fit(features, labels)
+            
+            test_feat = data.iloc[[index]]
+            test_feat = test_feat.loc[:,test_feat.columns != 'Date']
+            prediction = rf.predict(test_feat.loc[:, test_feat.columns != 'Result'])
+            
+            # accuracy = metrics.accuracy_score(row["Result"], prediction) * 100
+            # print('Accuracy:', round(accuracy,4), '%')
+            # accs += accuracy
+            if row["Result"] == prediction[0]:
+                accs += 1
+            accs_count += 1
+            # remove the first entry of the learning datas
+            learning_data = learning_data.iloc[1: , :]
+        
+
+        # add row to learning data
+        learning_data = pd.concat([learning_data, data.iloc[[index]]], ignore_index=True)
+    
+    if accs_count > 0:
+        print(f"Avg. Accuracy: {round(accs/accs_count, 2)*100} %")
+    else:
+        print("No prediction done!")  
+
 def new_machine_learning_monthly(data : pd.DataFrame):
     # # # # # # # # # # # #
     # Die Daten werden separiert pro Monat, für das erste Monat wird ein RF erstellt und damit das zweite Monat vorhergesagt
