@@ -59,6 +59,7 @@ def get_result( data : pd.DataFrame, all_trades ):
     remove_no_trades.reverse()
     for r in remove_no_trades:
         data = data.drop(r)
+    data = data.reset_index(drop=True)
 
     for a in all_trades:
         res += a[2]
@@ -78,6 +79,57 @@ def get_result( data : pd.DataFrame, all_trades ):
 
     return data
     
+def new_machine_learning_monthly(data : pd.DataFrame):
+    # # # # # # # # # # # #
+    # Die Daten werden separiert pro Monat, für das erste Monat wird ein RF erstellt und damit das zweite Monat vorhergesagt
+    # Danach wird für das zweite Monat ein RF erstellt und das dritte vorhergesagt, usw.
+    # # # # # # # # # # # #
+    month = 99          # current month
+    month_data = []     # List of all monthly data
+    new_month = pd.DataFrame()    # Temporary data of new month
+    
+    accs = 0
+    accs_count = 0
+    
+    for index, row in data.iterrows():
+        dt = datetime.strptime(row["Date"],"%Y-%m-%d %H:%M:%S")
+        if dt.month != month:  # Check if current entry is new month
+            month = dt.month   # Save month as new month for check
+            if new_month.empty == False:       # If there is data available ( not at the first run )
+                # Add data to month_data and reset new_month
+                month_data.append(new_month.loc[:, new_month.columns != "Date"])    
+                new_month = pd.DataFrame()
+        
+        # Add data without Date column
+        if new_month.empty == True:
+            new_month = pd.DataFrame(data.iloc[[index]])
+        else:
+            new_month = pd.concat([new_month, data.iloc[[index]]], ignore_index=True)
+
+    month_data.append(new_month.loc[:, new_month.columns != "Date"])
+
+    rf = None
+    for md in month_data:
+        # seperate features and lables for each month
+        features = md.loc[:, md.columns != 'Result']
+        labels = md.loc[:,'Result']
+        
+        # if ther is already a RF (not for the first run), make a prediction for the current data
+        if rf != None:
+            prediction = rf.predict(features)
+            accuracy = metrics.accuracy_score(labels, prediction) * 100
+            accs += accuracy
+            accs_count += 1
+            print('Accuracy:', round(accuracy,4), '%')
+        
+        # create a new RF for the current data        
+        rf = RandomForestClassifier(n_estimators=100)
+        rf.fit(features, labels)
+    
+    print(f"Avg. Accuracy: {round(accs/accs_count, 2)} %")
+    print(f"Processing time...{round(time.time() - start, 2)} sec")        
+            
+
 def machine_learning(data):
     tmp_acc = 0
     accs = 0
@@ -217,10 +269,12 @@ if __name__ == "__main__":
 
     data = get_result( data, all_trades )
     
-    if True:
+    if cfg.MODE == 0:
         machine_learning(data.loc[:, data.columns != 'Date'])
-    else:
+    elif cfg.MODE == 1:
         local_machine_learning(data.loc[:, data.columns != 'Date'])
+    elif cfg.MODE == 2:
+        new_machine_learning_monthly(data)
 
     plot_all(data.loc[:, data.columns != 'Date'])
 
