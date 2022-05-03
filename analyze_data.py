@@ -3,7 +3,7 @@ from datetime import datetime
 import helper as h
 import config as cfg
 
-def main( df30m : pd.DataFrame, days, PIP_SIZE ):
+def main( df30m : pd.DataFrame, days ):
     new_data = None
     data = None
     cur_day = 0
@@ -23,7 +23,7 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
             high = 0
             cur_day = dt.day
         elif cur_day != dt.day:
-            days.append([cur_day, low, high, ((high-low)/PIP_SIZE)+1])
+            days.append([cur_day, low, high, ((high-low)/cfg.PIP_SIZE)+1])
             data = pd.concat([data, new_data], ignore_index=True)
             low = 0
             high = 0
@@ -41,7 +41,7 @@ def main( df30m : pd.DataFrame, days, PIP_SIZE ):
         if high < tmp_high:
             high = tmp_high
     
-    days.append([cur_day, low, high, ((high-low)/PIP_SIZE)+1])
+    days.append([cur_day, low, high, ((high-low)/cfg.PIP_SIZE)+1])
     data = pd.concat([data, new_data], ignore_index=True)
 
     return data

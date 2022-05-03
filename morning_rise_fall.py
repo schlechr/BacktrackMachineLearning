@@ -32,9 +32,9 @@ def create_data(all_trades, y, m):
     
     days = []
 
-    data = ad.main(df30m, days, cfg.PIP_SIZE)
+    data = ad.main(df30m, days)
 
-    dr.main(df1m, all_trades, days, cfg.PIP_SIZE, cfg.GV_PER_PIP)
+    dr.main(df1m, all_trades, days)
 
     return data
 
@@ -77,7 +77,7 @@ def get_result( data : pd.DataFrame, all_trades ):
     print(f"Processing time...{round(time.time() - start, 2)} sec")
 
     return data
-
+    
 def machine_learning(data):
     tmp_acc = 0
     accs = 0

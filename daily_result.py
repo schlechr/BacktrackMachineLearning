@@ -1,8 +1,9 @@
 import pandas as pd
 from datetime import datetime
 import helper as h
+import config as cfg
 
-def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
+def main( df1m : pd.DataFrame, all_trades, days):
     cur_day = 0
     low_limit = 0
     high_limit = 0
@@ -28,9 +29,9 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
             if open_trade != []:
                 close = h.string_to_num(row["Close"])
                 if open_trade[0] == "LONG":
-                    all_trades.append([dt.date(), open_trade[0],((close - high_limit) / PIP_SIZE) * GV_PER_PIP])
+                    all_trades.append([dt.date(), open_trade[0],((close - high_limit) / cfg.PIP_SIZE) * cfg.GV_PER_PIP])
                 elif open_trade[0] == "SHORT":
-                    all_trades.append([dt.date(), open_trade[0],((low_limit - close) / PIP_SIZE) * GV_PER_PIP])
+                    all_trades.append([dt.date(), open_trade[0],((low_limit - close) / cfg.PIP_SIZE) * cfg.GV_PER_PIP])
                 open_trade = []
             continue
         elif dt.hour >= 12 and open_trade == [] and skip_day == False and found_day == True:
@@ -50,9 +51,9 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
             open_trade = []
             for i in days:
                 if i[0] == cur_day:
-                    low_limit = i[1] - PIP_SIZE
-                    high_limit = i[2] + PIP_SIZE
-                    tp_sl = ((i[2]-i[1])/PIP_SIZE)+PIP_SIZE
+                    low_limit = i[1] - cfg.PIP_SIZE
+                    high_limit = i[2] + cfg.PIP_SIZE
+                    tp_sl = ((i[2]-i[1])/cfg.PIP_SIZE)+cfg.PIP_SIZE
                     found_day = True
                     break
 
@@ -64,16 +65,16 @@ def main( df1m : pd.DataFrame, all_trades, days, PIP_SIZE, GV_PER_PIP):
 
         if open_trade == []:
             if tmp_high > high_limit > tmp_low:
-                open_trade = ["LONG", high_limit + tp_sl*PIP_SIZE, low_limit]
+                open_trade = ["LONG", high_limit + tp_sl*cfg.PIP_SIZE, low_limit]
             elif tmp_high > low_limit > tmp_low:
-                open_trade = ["SHORT", low_limit - tp_sl*PIP_SIZE, high_limit]
+                open_trade = ["SHORT", low_limit - tp_sl*cfg.PIP_SIZE, high_limit]
 
         else:
             if tmp_high > open_trade[1] > tmp_low:
-                all_trades.append([dt.date(), open_trade[0], tp_sl*GV_PER_PIP])
+                all_trades.append([dt.date(), open_trade[0], tp_sl*cfg.GV_PER_PIP])
                 open_trade = []
                 skip_day = True
             elif tmp_high > open_trade[2] > tmp_low:
-                all_trades.append([dt.date(), open_trade[0], (tp_sl*GV_PER_PIP)*-1])
+                all_trades.append([dt.date(), open_trade[0], (tp_sl*cfg.GV_PER_PIP)*-1])
                 open_trade = []
                 skip_day = True
